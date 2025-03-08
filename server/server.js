@@ -12,44 +12,50 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'client/dist')));
 
 // Routes
-// app.get('/api/info', async (req, res) => {
-//     try {
-//         const { url } = req.query;
-//         const info = await ytdl.getInfo(url);
-//         res.json({
-//             title: info.videoDetails.title,
-//             formats: info.formats,
-//             thumbnails: info.videoDetails.thumbnails,
-//             duration: info.videoDetails.lengthSeconds
-//         });
-//     } catch (error) {
-//         res.status(400).json({ error: error.message });
-//     }
-// });
+app.get('/api/info', async (req, res) => {
+    try {
+        const { url } = req.query;
+        const info = await ytdl.getInfo(url);
+        const videoId = ytdl.getVideoID(url);
+        
+        // Filter and process formats
+        const formats = info.formats
+            .filter(format => format.qualityLabel || format.audioQuality)
+            .map(format => ({
+                ...format,
+                container: format.mimeType.split('/')[1].split(';')[0],
+                hasVideo: !!format.qualityLabel
+            }));
+
+        res.json({
+            title: info.videoDetails.title,
+            formats: formats,
+            videoId: videoId,
+            duration: info.videoDetails.lengthSeconds,
+            description: info.videoDetails.description
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 
 app.get('/api/download', async (req, res) => {
     try {
         const { url, format } = req.query;
-        const videoId = await ytdl.getURLVideoID(url);
         
         if (!format) {
-            const metaInfo = await ytdl.getInfo(url);
-            const data = {
-                url: 'https://www.youtube.com/embed/' + videoId,
-                info: metaInfo.formats
-            };
-            return res.send(data);
-        } else {
-            const info = await ytdl.getInfo(url);
-            const videoDetails = info.videoDetails;
-            const title = videoDetails.title.replace(/[^\w\s]/gi, '');
-
-            res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
-            ytdl(url, {
-                format: format,
-                quality: format || 'highest'
-            }).pipe(res);
+            return res.status(400).send({ error: 'Format is required' });
         }
+
+        const info = await ytdl.getInfo(url);
+        const videoDetails = info.videoDetails;
+        const title = videoDetails.title.replace(/[^\w\s]/gi, '');
+
+        res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
+        ytdl(url, {
+            format: format,
+            quality: format
+        }).pipe(res);
     } catch (error) {
         console.error('Download error:', error);
         return res.status(500).send({ error: error.message });
