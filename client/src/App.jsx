@@ -86,7 +86,8 @@ const App = () => {
   const handleMergedDownload = async (videoFormat, audioFormat, quality) => {
     try {
       setDownloadingFormat(`${quality} HD`);
-      window.location.href = `http://localhost:5000/api/download-merged?url=${urlValue}&videoFormat=${videoFormat}&audioFormat=${audioFormat}`;
+      // Change from /api/download-merged to /api/download/merged to match new route structure
+      window.location.href = `http://localhost:5000/api/download/merged?url=${urlValue}&videoFormat=${videoFormat}&audioFormat=${audioFormat}`;
       setTimeout(() => setDownloadingFormat(null), 5000);
     } catch (error) {
       console.error("Download error:", error);
