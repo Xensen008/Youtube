@@ -1,12 +1,50 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import io from "socket.io-client";
+import DownloadStatus from "./components/DownloadStatus";
 
 const App = () => {
   const [urlValue, setUrlValue] = useState("");
   const [videoInfo, setVideoInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [downloadingFormat, setDownloadingFormat] = useState(null);
+  const [socketId, setSocketId] = useState(null);
+  const [downloadStatus, setDownloadStatus] = useState({});
+  const socketRef = useRef(null);
+  
+  // Connect to WebSocket when component mounts
+  useEffect(() => {
+    const socket = io("http://localhost:5000");
+    socketRef.current = socket;
+    
+    socket.on("connect", () => {
+      setSocketId(socket.id);
+    });
+    
+    socket.on("download:status", (status) => {
+      setDownloadStatus(prevState => ({
+        ...prevState,
+        [status.id]: status
+      }));
+      
+      // Auto-remove finished downloads after 30 seconds
+      if (status.status === 'finished') {
+        setTimeout(() => {
+          setDownloadStatus(prevState => {
+            const newState = { ...prevState };
+            delete newState[status.id];
+            return newState;
+          });
+        }, 30000);
+      }
+    });
+    
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
+  // Download handlers
   const handleUrlChange = async (e) => {
     const url = e.target.value;
     setUrlValue(url);
@@ -86,9 +124,8 @@ const App = () => {
   const handleMergedDownload = async (videoFormat, audioFormat, quality) => {
     try {
       setDownloadingFormat(`${quality} HD`);
-      // Change from /api/download-merged to /api/download/merged to match new route structure
-      window.location.href = `http://localhost:5000/api/download/merged?url=${urlValue}&videoFormat=${videoFormat}&audioFormat=${audioFormat}`;
-      setTimeout(() => setDownloadingFormat(null), 5000);
+      window.location.href = `http://localhost:5000/api/download/merged?url=${urlValue}&videoFormat=${videoFormat}&audioFormat=${audioFormat}&socketId=${socketId}`;
+      setTimeout(() => setDownloadingFormat(null), 1000);
     } catch (error) {
       console.error("Download error:", error);
       alert("Error downloading video. Please try again.");
@@ -115,6 +152,24 @@ const App = () => {
     return audioFormats.sort((a, b) => b.audioBitrate - a.audioBitrate)[0];
   };
 
+  // Status badge component
+  const StatusBadge = ({ status }) => {
+    const statusColors = {
+      initializing: "bg-blue-500",
+      downloading: "bg-blue-600",
+      processing: "bg-yellow-600",
+      completed: "bg-green-600",
+      error: "bg-red-600",
+      finished: "bg-green-700"
+    };
+    
+    return (
+      <span className={`px-2 py-0.5 rounded-full text-xs ${statusColors[status] || "bg-gray-600"}`}>
+        {status}
+      </span>
+    );
+  };
+
   return (
     <div className="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen">
       <div className="container mx-auto px-4 py-8">
@@ -139,6 +194,9 @@ const App = () => {
               className="w-full p-4 bg-gray-700/50 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
             />
           </div>
+
+          {/* Download Status - Now using the separate component */}
+          <DownloadStatus downloadStatus={downloadStatus} />
 
           {/* Loading State */}
           {loading && (
@@ -270,6 +328,11 @@ const App = () => {
               </div>
             </div>
           )}
+          
+          {/* Footer */}
+          <div className="text-center text-gray-500 text-sm mt-8">
+            <p>Download YouTube videos in various formats. For personal use only.</p>
+          </div>
         </div>
       </div>
     </div>
