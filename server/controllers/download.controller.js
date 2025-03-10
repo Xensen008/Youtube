@@ -19,19 +19,53 @@ exports.downloadVideo = async (req, res) => {
         const videoDetails = info.videoDetails;
         const title = videoDetails.title.replace(/[^\w\s]/gi, '');
 
-        // Check if the format has both audio and video
+        // Find the selected format
         const selectedFormat = info.formats.find(f => f.itag.toString() === format);
         
-        if (selectedFormat && selectedFormat.hasAudio && selectedFormat.hasVideo) {
-            res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
-            ytdl(url, { format: format }).pipe(res);
+        if (!selectedFormat) {
+            return res.status(400).send({ error: 'Format not found' });
+        }
+
+        // Handle audio-only formats differently
+        if (!selectedFormat.hasVideo && selectedFormat.hasAudio) {
+            console.log('Downloading audio-only format:', selectedFormat.itag);
+            
+            // Use audio-only filter with specific format
+            const stream = ytdl(url, {
+                filter: 'audioonly',
+                quality: 'highestaudio',
+                ...(!selectedFormat.isLive && { format: selectedFormat })
+            });
+            
+            // Set appropriate headers for audio download
+            res.header('Content-Type', 'audio/mp3');
+            res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
+            
+            // Error handling for the stream
+            stream.on('error', (err) => {
+                console.error('Audio download error:', err);
+                // Try fallback method if initial download fails
+                const fallbackStream = ytdl(url, {
+                    filter: 'audioonly',
+                    quality: 'highestaudio'
+                });
+                fallbackStream.pipe(res);
+            });
+            
+            // Pipe the stream to response
+            stream.pipe(res);
         } else {
-            // For video-only formats, download with audio
-            res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
-            ytdl(url, { 
-                quality: format,
-                filter: 'audioandvideo' 
-            }).pipe(res);
+            // Handle video formats as before
+            if (selectedFormat.hasAudio && selectedFormat.hasVideo) {
+                res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
+                ytdl(url, { format: selectedFormat.itag }).pipe(res);
+            } else {
+                res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
+                ytdl(url, { 
+                    quality: selectedFormat.itag,
+                    filter: 'audioandvideo' 
+                }).pipe(res);
+            }
         }
     } catch (error) {
         console.error('Download error:', error);

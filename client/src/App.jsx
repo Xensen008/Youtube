@@ -112,11 +112,31 @@ const App = () => {
   const handleDownload = async (format, label) => {
     try {
       setDownloadingFormat(label || "Video");
-      window.location.href = `http://localhost:5000/api/download?url=${urlValue}&format=${format}`;
-      setTimeout(() => setDownloadingFormat(null), 3000);
+      
+      // Check if this is an audio format
+      const isAudioFormat = label?.toLowerCase().includes('audio');
+      
+      // Add error handling and timeout
+      const downloadTimeout = setTimeout(() => {
+        setDownloadingFormat(null);
+        alert("Download failed to start. Please try again.");
+      }, 10000);
+      
+      // Create the download URL
+      const downloadUrl = `http://localhost:5000/api/download?url=${encodeURIComponent(urlValue)}&format=${format}`;
+      console.log(`Starting ${isAudioFormat ? 'audio' : 'video'} download:`, format);
+      
+      // Trigger download
+      window.location.href = downloadUrl;
+      
+      // Clear the timeout if download starts
+      setTimeout(() => {
+        clearTimeout(downloadTimeout);
+        setDownloadingFormat(null);
+      }, 3000);
     } catch (error) {
       console.error("Download error:", error);
-      alert("Error downloading video. Please try again.");
+      alert("Error downloading. Please try again.");
       setDownloadingFormat(null);
     }
   };
