@@ -30,7 +30,6 @@ exports.downloadVideo = async (req, res) => {
         if (!selectedFormat.hasVideo && selectedFormat.hasAudio) {
             console.log('Downloading audio-only format:', selectedFormat.itag);
             
-            // Use audio-only filter with specific format
             const stream = ytdl(url, {
                 filter: 'audioonly',
                 quality: 'highestaudio',
