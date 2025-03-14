@@ -10,6 +10,7 @@ const App = () => {
   const [downloadingFormat, setDownloadingFormat] = useState(null);
   const [socketId, setSocketId] = useState(null);
   const [downloadStatus, setDownloadStatus] = useState({});
+  const [showPlatforms, setShowPlatforms] = useState(false);
   const socketRef = useRef(null);
   
   // Connect to WebSocket when component mounts
@@ -190,71 +191,129 @@ const App = () => {
     );
   };
 
+  const PlatformsDialog = () => (
+    <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ${showPlatforms ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className="bg-gray-800 rounded-2xl border border-white/10 p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-white">Supported Platforms</h3>
+          <button
+            onClick={() => setShowPlatforms(false)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+            <div className="w-10 h-10 flex items-center justify-center bg-red-500/10 rounded-lg">
+              <svg className="w-6 h-6 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-white font-medium">YouTube</h4>
+              <p className="text-gray-400 text-sm">Download videos and audio</p>
+            </div>
+          </div>
+          
+          <p className="text-xs text-gray-400 mt-4">
+            More platforms coming soon...
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500">
-              YouTube Downloader
+    <div className="min-h-screen bg-[#0A0A0A] relative overflow-hidden">
+      {/* Gradient spotlight effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[40vh] -left-[20vw] w-[80vw] h-[80vh] bg-purple-500/20 rounded-full blur-[120px]" />
+        <div className="absolute -bottom-[40vh] -right-[20vw] w-[80vw] h-[80vh] bg-blue-500/20 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="container mx-auto px-4 py-20 relative z-10">
+        <div className="max-w-4xl mx-auto space-y-12">
+          {/* Header with new button */}
+          <div className="text-center space-y-4 mb-16">
+            <h1 className="text-7xl font-bold tracking-tight">
+              <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+                MediaFlow
+              </span>
             </h1>
-            <p className="text-gray-400">
-              Download your favorite videos in any format
-            </p>
+            <div className="space-y-4">
+              <p className="text-gray-400 text-lg">
+                Stream your content, your way
+              </p>
+              <button
+                onClick={() => setShowPlatforms(true)}
+                className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 mx-auto"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                View supported platforms
+              </button>
+            </div>
           </div>
 
-          {/* Search Input */}
-          <div className="bg-gray-800/50 p-6 rounded-xl backdrop-blur-sm">
+          {/* Platforms Dialog */}
+          <PlatformsDialog />
+
+          {/* Search Input in Modal-like container */}
+          <div className="relative backdrop-blur-xl bg-white/5 rounded-2xl border border-white/10 p-8 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-2xl" />
             <input
               type="text"
-              placeholder="Paste YouTube URL here..."
+              placeholder="Paste video URL here..."
               value={urlValue}
               onChange={handleUrlChange}
-              className="w-full p-4 bg-gray-700/50 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 bg-black/40 rounded-xl border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm backdrop-blur-sm"
             />
           </div>
 
-          {/* Download Status - Now using the separate component */}
+          {/* Download Status */}
           <DownloadStatus downloadStatus={downloadStatus} />
 
           {/* Loading State */}
           {loading && (
-            <div className="flex justify-center items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
             </div>
           )}
 
           {/* Download Progress */}
           {downloadingFormat && (
-            <div className="bg-blue-900/50 p-4 rounded-lg text-white text-center">
+            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-4 text-white text-center">
               <div className="flex items-center justify-center gap-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Preparing {downloadingFormat} download...</span>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-500 border-t-transparent"></div>
+                <span className="text-sm">Preparing {downloadingFormat} download...</span>
               </div>
             </div>
           )}
 
           {/* Video Info */}
           {videoInfo && (
-            <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Video Preview */}
+            <div className="backdrop-blur-xl bg-white/5 rounded-2xl border border-white/10 p-6 shadow-2xl">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Keep existing video preview section but update classes */}
                 <div className="space-y-4">
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-medium text-white/90">
                     {videoInfo.title}
                   </h2>
-                  <div className="aspect-video w-full">
+                  <div className="aspect-video w-full rounded-xl overflow-hidden border border-white/10">
                     <iframe
                       src={getVideoEmbed(videoInfo.videoId)}
-                      className="w-full h-full rounded-lg"
+                      className="w-full h-full"
                       allowFullScreen
                       title={videoInfo.title}
                     />
                   </div>
                 </div>
 
-                {/* Download Options */}
+                {/* Update download options styling */}
                 <div className="space-y-6">
                   {/* All Video Formats (With Audio) */}
                   <div className="space-y-3">
@@ -350,8 +409,8 @@ const App = () => {
           )}
           
           {/* Footer */}
-          <div className="text-center text-gray-500 text-sm mt-8">
-            <p>Download YouTube videos in various formats. For personal use only.</p>
+          <div className="text-center text-gray-500 text-sm mt-12">
+            <p>Download and convert media for personal use only.</p>
           </div>
         </div>
       </div>

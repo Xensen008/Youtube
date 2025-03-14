@@ -154,14 +154,12 @@ const DownloadStatus = ({ downloadStatus }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          Download Status
-          <span className="text-xs bg-blue-700/50 px-2 py-0.5 rounded-full">Real-time updates</span>
+        <h3 className="text-lg font-medium text-white/90 flex items-center gap-2">
+          Downloads
+          <span className="text-xs bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+            Live Status
+          </span>
         </h3>
-        {/* <div className="flex items-center gap-1">
-          <span className="animate-ping h-2 w-2 rounded-full bg-green-400 inline-block"></span>
-          <span className="text-xs text-gray-400">Live</span>
-        </div> */}
       </div>
       
       <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
@@ -169,14 +167,14 @@ const DownloadStatus = ({ downloadStatus }) => {
           <div 
             key={download.id} 
             className={`
-              bg-gray-800/70 backdrop-blur-sm rounded-lg p-5 border-l-4 shadow-xl
-              hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5
-              ${download.status === 'error' ? 'border-red-600' : ''}
-              ${download.status === 'completed' ? 'border-green-600' : ''}
-              ${download.status === 'processing' ? 'border-yellow-600' : ''}
-              ${download.status === 'downloading' ? 'border-blue-600' : ''}
-              ${download.status === 'finished' ? 'border-green-600' : ''}
-              ${download.status === 'initializing' ? 'border-blue-500' : ''}
+              backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-5
+              hover:bg-white/10 transition-all duration-300
+              ${download.status === 'error' ? 'border-red-500/50' : ''}
+              ${download.status === 'completed' ? 'border-green-500/50' : ''}
+              ${download.status === 'processing' ? 'border-yellow-500/50' : ''}
+              ${download.status === 'downloading' ? 'border-purple-500/50' : ''}
+              ${download.status === 'finished' ? 'border-green-500/50' : ''}
+              ${download.status === 'initializing' ? 'border-blue-500/50' : ''}
             `}
           >
             {/* Header section with thumbnail and title */}
@@ -273,24 +271,23 @@ const DownloadStatus = ({ downloadStatus }) => {
         ))}
       </div>
 
-      {/* Add CSS for custom scrollbar */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 4px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(31, 41, 55, 0.4);
-          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 4px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(75, 85, 99, 0.7);
-          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(107, 114, 128, 0.8);
+          background: rgba(255, 255, 255, 0.15);
         }
       `}</style>
     </div>
